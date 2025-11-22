@@ -89,3 +89,17 @@ def get_file_with_claim_check(db: Session, file_id: int, claim_id: int) -> Optio
         return file
     return None
 
+
+def delete_file(db: Session, file: File) -> None:
+    """Delete a file from storage and database."""
+    # Delete from storage
+    try:
+        storage.delete_file(file.storage_path)
+    except FileNotFoundError:
+        # File doesn't exist in storage, continue with DB deletion
+        pass
+    
+    # Delete from database
+    db.delete(file)
+    db.commit()
+

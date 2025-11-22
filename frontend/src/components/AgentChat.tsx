@@ -66,22 +66,26 @@ export function AgentChat({ claimId, onAccept }: AgentChatProps) {
       if (onAccept) {
         onAccept();
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to accept proposal:', error);
-      alert('Failed to accept proposal');
+      const errorMessage = error?.response?.data?.detail || error?.message || 'Failed to accept proposal';
+      const errorMsg: Message = {
+        role: 'agent',
+        content: `Error: ${errorMessage}`,
+      };
+      setMessages((prev) => [...prev, errorMsg]);
     }
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      <h3>Agent Chat</h3>
+    <div style={{ display: 'flex', flexDirection: 'column' }}>
+      <h3 style={{ marginBottom: '1rem' }}>Agent Chat</h3>
       <div
         style={{
-          flex: 1,
           border: '1px solid #ddd',
-          borderRadius: '4px',
-          padding: '15px',
-          marginBottom: '15px',
+          borderRadius: '6px',
+          padding: '1rem',
+          marginBottom: '1rem',
           overflowY: 'auto',
           minHeight: '300px',
           maxHeight: '500px',
@@ -89,7 +93,7 @@ export function AgentChat({ claimId, onAccept }: AgentChatProps) {
         }}
       >
         {messages.length === 0 && (
-          <p style={{ color: '#666', fontStyle: 'italic' }}>
+          <p style={{ color: '#666', fontStyle: 'italic', margin: 0 }}>
             Type a command like "create a summary" or "update file" to get started.
           </p>
         )}
@@ -97,24 +101,27 @@ export function AgentChat({ claimId, onAccept }: AgentChatProps) {
           <div
             key={idx}
             style={{
-              marginBottom: '15px',
-              padding: '10px',
-              backgroundColor: msg.role === 'user' ? '#e3f2fd' : '#f5f5f5',
-              borderRadius: '4px',
+              marginBottom: '1rem',
+              padding: '0.75rem',
+              backgroundColor: msg.role === 'user' ? '#e3f2fd' : '#fff',
+              borderRadius: '6px',
               textAlign: msg.role === 'user' ? 'right' : 'left',
             }}
           >
-            <strong>{msg.role === 'user' ? 'You' : 'Agent'}:</strong>
-            <p style={{ margin: '5px 0' }}>{msg.content}</p>
+            <div style={{ fontWeight: '500', color: '#213547', marginBottom: '0.5rem' }}>
+              {msg.role === 'user' ? 'You' : 'Agent'}:
+            </div>
+            <p style={{ margin: 0, color: '#213547' }}>{msg.content}</p>
             {msg.proposals && msg.proposals.length > 0 && (
-              <div style={{ marginTop: '10px' }}>
+              <div style={{ marginTop: '1rem' }}>
                 {msg.proposals.map((proposal, pIdx) => (
-                  <div key={pIdx} style={{ marginBottom: '15px' }}>
+                  <div key={pIdx} style={{ marginBottom: '1rem' }}>
                     <DiffView proposal={proposal} />
                     <button
                       onClick={() => handleAccept(proposal)}
                       style={{
-                        padding: '8px 16px',
+                        marginTop: '0.5rem',
+                        padding: '0.5rem 1rem',
                         backgroundColor: '#4caf50',
                         color: 'white',
                         border: 'none',
@@ -131,10 +138,10 @@ export function AgentChat({ claimId, onAccept }: AgentChatProps) {
           </div>
         ))}
         {loading && (
-          <div style={{ color: '#666', fontStyle: 'italic' }}>Agent is thinking...</div>
+          <div style={{ color: '#666', fontStyle: 'italic', margin: 0 }}>Agent is thinking...</div>
         )}
       </div>
-      <div style={{ display: 'flex', gap: '10px' }}>
+      <div style={{ display: 'flex', gap: '0.75rem' }}>
         <input
           type="text"
           value={input}
@@ -146,14 +153,14 @@ export function AgentChat({ claimId, onAccept }: AgentChatProps) {
             }
           }}
           placeholder="Type a command..."
-          style={{ flex: 1, padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
+          style={{ flex: 1, padding: '0.5rem', borderRadius: '4px', border: '1px solid #ddd', fontSize: '0.95em' }}
           disabled={loading}
         />
         <button
           onClick={handleSend}
           disabled={!input.trim() || loading}
           style={{
-            padding: '8px 16px',
+            padding: '0.5rem 1rem',
             backgroundColor: '#2196f3',
             color: 'white',
             border: 'none',

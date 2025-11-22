@@ -40,29 +40,29 @@ export function ClaimDetail() {
   };
 
   if (loading) {
-    return <div>Loading claim...</div>;
+    return <div style={{ padding: '2rem', textAlign: 'center', color: '#666' }}>Loading claim...</div>;
   }
 
   if (!claim) {
-    return <div>Claim not found</div>;
+    return <div style={{ padding: '2rem', textAlign: 'center', color: '#666' }}>Claim not found</div>;
   }
 
   return (
-    <div style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto' }}>
-      <div style={{ marginBottom: '20px' }}>
-        <button onClick={() => navigate('/')} style={{ marginBottom: '10px' }}>
+    <div style={{ padding: '2rem', maxWidth: '1400px', margin: '0 auto' }}>
+      <div style={{ marginBottom: '2rem' }}>
+        <button onClick={() => navigate('/')} style={{ marginBottom: '1rem' }}>
           ← Back to Claims
         </button>
-        <h1>{claim.title}</h1>
+        <h1 style={{ margin: '0 0 0.5rem 0', color: '#213547' }}>{claim.title}</h1>
         {claim.reference_number && (
-          <p style={{ color: '#666' }}>Reference: {claim.reference_number}</p>
+          <p style={{ margin: 0, color: '#666', fontSize: '0.95em' }}>Reference: {claim.reference_number}</p>
         )}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', alignItems: 'start' }}>
         <div>
           <FileUpload claimId={claim.id} onUploadSuccess={handleRefresh} />
-          <FileList key={refreshKey} claimId={claim.id} />
+          <FileList key={refreshKey} claimId={claim.id} onDelete={handleRefresh} />
         </div>
         <div>
           <AgentChat claimId={claim.id} onAccept={handleRefresh} />

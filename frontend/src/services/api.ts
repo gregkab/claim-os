@@ -2,8 +2,7 @@
 import axios from 'axios';
 import type {
   Claim,
-  File,
-  Artifact,
+  File as FileType,
   AgentChatRequest,
   AgentChatResponse,
   AgentAcceptRequest,
@@ -38,20 +37,28 @@ export const claimsApi = {
 
 // Files API
 export const filesApi = {
-  list: async (claimId: number): Promise<File[]> => {
-    const response = await api.get<File[]>(`/claims/${claimId}/files`);
+  list: async (claimId: number): Promise<FileType[]> => {
+    const response = await api.get<FileType[]>(`/claims/${claimId}/files`);
     return response.data;
   },
 
-  upload: async (claimId: number, file: File): Promise<File> => {
+  upload: async (claimId: number, file: File): Promise<FileType> => {
     const formData = new FormData();
     formData.append('file', file);
-    const response = await api.post<File>(`/claims/${claimId}/files`, formData, {
+    const response = await api.post<FileType>(`/claims/${claimId}/files`, formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
     });
     return response.data;
+  },
+
+  delete: async (claimId: number, fileId: number): Promise<void> => {
+    await api.delete(`/claims/${claimId}/files/${fileId}`);
+  },
+
+  getDownloadUrl: (claimId: number, fileId: number): string => {
+    return `${API_BASE_URL}/claims/${claimId}/files/${fileId}/download`;
   },
 };
 

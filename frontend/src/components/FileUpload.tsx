@@ -40,21 +40,22 @@ export function FileUpload({ claimId, onUploadSuccess }: FileUploadProps) {
   };
 
   return (
-    <div style={{ marginBottom: '20px', padding: '15px', border: '1px solid #ddd', borderRadius: '4px' }}>
-      <h3>Upload File</h3>
-      <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+    <div style={{ marginBottom: '1.5rem', padding: '1.5rem', border: '1px solid #ddd', borderRadius: '6px', backgroundColor: '#fafafa' }}>
+      <h3 style={{ marginBottom: '1rem' }}>Upload File</h3>
+      <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
         <input
           id="file-input"
           type="file"
           onChange={handleFileChange}
           disabled={uploading}
+          style={{ flex: '1 1 auto', minWidth: '200px' }}
         />
         <button onClick={handleUpload} disabled={!selectedFile || uploading}>
           {uploading ? 'Uploading...' : 'Upload'}
         </button>
       </div>
       {selectedFile && (
-        <p style={{ marginTop: '10px', fontSize: '0.9em', color: '#666' }}>
+        <p style={{ marginTop: '0.75rem', fontSize: '0.9em', color: '#666' }}>
           Selected: {selectedFile.name}
         </p>
       )}

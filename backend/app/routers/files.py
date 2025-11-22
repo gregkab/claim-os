@@ -1,5 +1,5 @@
 """Files router."""
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File as FastAPIFile
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File as FastAPIFile, Response
 from sqlalchemy.orm import Session
 from typing import List
 from pathlib import Path
@@ -87,4 +87,66 @@ def get_file(
         raise HTTPException(status_code=404, detail="File not found")
     
     return file
+
+
+@router.get("/{file_id}/download")
+def download_file(
+    claim_id: int,
+    file_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Download a file by ID."""
+    # Verify claim exists and user owns it
+    claim = claim_service.get_claim_with_owner_check(db, claim_id, current_user.id)
+    if not claim:
+        raise HTTPException(status_code=404, detail="Claim not found")
+    
+    file = file_service.get_file_with_claim_check(db, file_id, claim_id)
+    if not file:
+        raise HTTPException(status_code=404, detail="File not found")
+    
+    try:
+        # Read file from storage
+        file_content = storage.read_file(file.storage_path)
+        
+        # Determine content type
+        media_type = file.mime_type or "application/octet-stream"
+        
+        # Return file with proper headers
+        return Response(
+            content=file_content,
+            media_type=media_type,
+            headers={
+                "Content-Disposition": f'inline; filename="{file.filename}"'
+            }
+        )
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail="File not found in storage")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to read file: {str(e)}")
+
+
+@router.delete("/{file_id}")
+def delete_file(
+    claim_id: int,
+    file_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Delete a file from a claim."""
+    # Verify claim exists and user owns it
+    claim = claim_service.get_claim_with_owner_check(db, claim_id, current_user.id)
+    if not claim:
+        raise HTTPException(status_code=404, detail="Claim not found")
+    
+    file = file_service.get_file_with_claim_check(db, file_id, claim_id)
+    if not file:
+        raise HTTPException(status_code=404, detail="File not found")
+    
+    try:
+        file_service.delete_file(db, file)
+        return {"status": "deleted", "file_id": file_id}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to delete file: {str(e)}")
 

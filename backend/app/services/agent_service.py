@@ -66,8 +66,11 @@ def process_command(db: Session, claim_id: int, user_message: str) -> List[Propo
     elif ('update' in message_lower or 'modify' in message_lower) and 'file' in message_lower:
         # For MVP, update the first text file found
         # TODO: Parse which file to update from the message
+        # Note: PDFs can be read for summaries, but only text files can be updated
+        # (we can't write text back to PDFs or other binary files)
         for file_id, file_data in file_contents.items():
             file = file_data['file']
+            # Only text files can be updated (PDFs and images are read-only for updates)
             if file.mime_type and file.mime_type.startswith('text/'):
                 old_content = file_data['content']
                 # Mock: add a note at the end
