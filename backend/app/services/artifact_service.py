@@ -21,12 +21,18 @@ def create_artifact(db: Session, artifact_data: ArtifactCreate, claim_id: int) -
 
 def get_artifact(db: Session, artifact_id: int) -> Optional[Artifact]:
     """Get an artifact by ID."""
-    return db.query(Artifact).filter(Artifact.id == artifact_id).first()
+    from sqlalchemy.orm import joinedload
+    return db.query(Artifact).options(
+        joinedload(Artifact.current_version)
+    ).filter(Artifact.id == artifact_id).first()
 
 
 def get_artifacts_by_claim(db: Session, claim_id: int) -> List[Artifact]:
     """Get all artifacts for a claim."""
-    return db.query(Artifact).filter(Artifact.claim_id == claim_id).all()
+    from sqlalchemy.orm import joinedload
+    return db.query(Artifact).options(
+        joinedload(Artifact.current_version)
+    ).filter(Artifact.claim_id == claim_id).all()
 
 
 def get_artifact_by_type(db: Session, claim_id: int, artifact_type: str) -> Optional[Artifact]:

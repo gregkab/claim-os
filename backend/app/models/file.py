@@ -1,5 +1,5 @@
 """File model."""
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, BigInteger
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, BigInteger, Text
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.core.database import Base
@@ -16,6 +16,7 @@ class File(Base):
     storage_path = Column(String, nullable=False)  # Path to file in storage (local or S3 key)
     mime_type = Column(String, nullable=True)
     size_bytes = Column(BigInteger, nullable=True)
+    extracted_text = Column(Text, nullable=True)  # Extracted text content (for PDFs, text files, etc.)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     
     # Relationships

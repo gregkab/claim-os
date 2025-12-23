@@ -18,7 +18,6 @@ export function AgentChat({ claimId, onAccept }: AgentChatProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
-  const [pendingProposals, setPendingProposals] = useState<Proposal[]>([]);
 
   const handleSend = async () => {
     if (!input.trim() || loading) return;
@@ -41,7 +40,6 @@ export function AgentChat({ claimId, onAccept }: AgentChatProps) {
         proposals: response.proposals,
       };
       setMessages((prev) => [...prev, agentMessage]);
-      setPendingProposals(response.proposals);
     } catch (error) {
       console.error('Failed to send message:', error);
       const errorMessage: Message = {
@@ -54,10 +52,41 @@ export function AgentChat({ claimId, onAccept }: AgentChatProps) {
     }
   };
 
+  const handleGenerateSummary = async () => {
+    if (loading) return;
+    
+    setLoading(true);
+    const userMessage: Message = {
+      role: 'user',
+      content: 'Generate or Update Summary via Agent',
+    };
+    setMessages((prev) => [...prev, userMessage]);
+
+    try {
+      const response = await agentApi.generateSummary(claimId);
+      const agentMessage: Message = {
+        role: 'agent',
+        content: response.proposals.length > 0
+          ? `Generated summary proposal. Review the changes below.`
+          : 'No summary could be generated. Make sure you have uploaded files.',
+        proposals: response.proposals,
+      };
+      setMessages((prev) => [...prev, agentMessage]);
+    } catch (error) {
+      console.error('Failed to generate summary:', error);
+      const errorMessage: Message = {
+        role: 'agent',
+        content: 'Sorry, I encountered an error generating the summary.',
+      };
+      setMessages((prev) => [...prev, errorMessage]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleAccept = async (proposal: Proposal) => {
     try {
       await agentApi.accept(claimId, { proposal });
-      setPendingProposals((prev) => prev.filter((p) => p !== proposal));
       const acceptMessage: Message = {
         role: 'agent',
         content: `Accepted changes to ${proposal.target_name}.`,
@@ -79,7 +108,25 @@ export function AgentChat({ claimId, onAccept }: AgentChatProps) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column' }}>
-      <h3 style={{ marginBottom: '1rem' }}>Agent Chat</h3>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+        <h3 style={{ margin: 0 }}>Agent Chat</h3>
+        <button
+          onClick={handleGenerateSummary}
+          disabled={loading}
+          style={{
+            padding: '0.5rem 1rem',
+            backgroundColor: '#4caf50',
+            color: 'white',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: loading ? 'not-allowed' : 'pointer',
+            fontWeight: '500',
+            fontSize: '0.9em',
+          }}
+        >
+          {loading ? 'Generating...' : 'Generate or Update Summary'}
+        </button>
+      </div>
       <div
         style={{
           border: '1px solid #ddd',

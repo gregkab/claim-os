@@ -1,10 +1,10 @@
 """Artifact schemas."""
 from pydantic import BaseModel
 from datetime import datetime
-from typing import Optional, TYPE_CHECKING
+from typing import Optional
 
-if TYPE_CHECKING:
-    from app.schemas.artifact_version import ArtifactVersion
+# Import here to avoid circular import, but needed for runtime
+from app.schemas.artifact_version import ArtifactVersion
 
 
 class ArtifactBase(BaseModel):
@@ -25,7 +25,7 @@ class Artifact(ArtifactBase):
     current_version_id: Optional[int] = None
     created_at: datetime
     updated_at: datetime
-    current_version: Optional["ArtifactVersion"] = None
+    current_version: Optional[ArtifactVersion] = None
 
     class Config:
         from_attributes = True

@@ -10,6 +10,25 @@ from app.services import claim_service, agent_service, file_service, artifact_se
 router = APIRouter(prefix="/claims/{claim_id}/agent", tags=["agent"])
 
 
+@router.post("/generate-summary", response_model=AgentChatResponse)
+def generate_summary(
+    claim_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Generate or update summary from claim files."""
+    # Verify claim exists and user owns it
+    claim = claim_service.get_claim_with_owner_check(db, claim_id, current_user.id)
+    if not claim:
+        raise HTTPException(status_code=404, detail="Claim not found")
+    
+    try:
+        proposals = agent_service.generate_summary_proposal(db, claim_id)
+        return AgentChatResponse(proposals=proposals)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error generating summary: {str(e)}")
+
+
 @router.post("/chat", response_model=AgentChatResponse)
 def agent_chat(
     claim_id: int,

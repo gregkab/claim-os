@@ -5,6 +5,7 @@ import type { Claim } from '../types';
 import { FileList } from './FileList';
 import { FileUpload } from './FileUpload';
 import { AgentChat } from './AgentChat';
+import { SummaryView } from './SummaryView';
 
 export function ClaimDetail() {
   const { claimId } = useParams<{ claimId: string }>();
@@ -57,6 +58,10 @@ export function ClaimDetail() {
         {claim.reference_number && (
           <p style={{ margin: 0, color: '#666', fontSize: '0.95em' }}>Reference: {claim.reference_number}</p>
         )}
+      </div>
+
+      <div style={{ marginBottom: '2rem' }}>
+        <SummaryView key={refreshKey} claimId={claim.id} />
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', alignItems: 'start' }}>

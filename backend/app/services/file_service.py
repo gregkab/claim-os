@@ -10,18 +10,16 @@ from app.models.claim import Claim
 from app.storage.local_storage import storage
 
 
-def read_file_content(file: File) -> str:
+def extract_text_from_bytes(file_bytes: bytes, mime_type: Optional[str], filename: str) -> Optional[str]:
     """
-    Read and extract text content from a file.
+    Extract text content from file bytes.
     
-    For text files: reads directly.
+    For text files: decodes directly.
     For PDFs: extracts text using pdfplumber (with fallback to PyPDF2).
-    TODO: Add support for more file types (Word docs, etc.)
+    Returns None if extraction fails or file type is not supported.
     """
-    file_bytes = storage.read_file(file.storage_path)
-    
     # Handle text files
-    if file.mime_type and file.mime_type.startswith('text/'):
+    if mime_type and mime_type.startswith('text/'):
         try:
             return file_bytes.decode('utf-8')
         except UnicodeDecodeError:
@@ -31,10 +29,10 @@ def read_file_content(file: File) -> str:
                     return file_bytes.decode(encoding)
                 except UnicodeDecodeError:
                     continue
-            raise ValueError(f"Could not decode text file: {file.filename}")
+            return None
     
     # Handle PDF files
-    if file.mime_type == 'application/pdf' or file.filename.lower().endswith('.pdf'):
+    if mime_type == 'application/pdf' or filename.lower().endswith('.pdf'):
         try:
             # Try pdfplumber first (better text extraction)
             with pdfplumber.open(BytesIO(file_bytes)) as pdf:
@@ -43,23 +41,46 @@ def read_file_content(file: File) -> str:
                     page_text = page.extract_text()
                     if page_text:
                         text_parts.append(page_text)
-                return '\n\n'.join(text_parts)
+                return '\n\n'.join(text_parts) if text_parts else None
         except Exception:
             # Fallback to PyPDF2
             try:
                 pdf_reader = PyPDF2.PdfReader(BytesIO(file_bytes))
                 text_parts = []
                 for page in pdf_reader.pages:
-                    text_parts.append(page.extract_text())
-                return '\n\n'.join(text_parts)
-            except Exception as e:
-                raise ValueError(f"Could not extract text from PDF: {file.filename}. Error: {e}")
+                    page_text = page.extract_text()
+                    if page_text:
+                        text_parts.append(page_text)
+                return '\n\n'.join(text_parts) if text_parts else None
+            except Exception:
+                return None
     
     # For other file types, try to decode as text
     try:
         return file_bytes.decode('utf-8', errors='replace')
     except Exception:
-        raise ValueError(f"Unsupported file type for text extraction: {file.mime_type or 'unknown'}")
+        return None
+
+
+def read_file_content(file: File) -> str:
+    """
+    Read and extract text content from a file.
+    
+    First tries to use stored extracted_text if available.
+    Otherwise, reads from storage and extracts text.
+    """
+    # If we have stored extracted text, use it
+    if file.extracted_text:
+        return file.extracted_text
+    
+    # Otherwise, extract from storage (for backward compatibility)
+    file_bytes = storage.read_file(file.storage_path)
+    extracted = extract_text_from_bytes(file_bytes, file.mime_type, file.filename)
+    
+    if extracted is None:
+        raise ValueError(f"Could not extract text from file: {file.filename}")
+    
+    return extracted
 
 
 def update_file_content(file: File, new_content: str) -> None:

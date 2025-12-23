@@ -14,7 +14,7 @@ export function FileList({ claimId, onDelete }: FileListProps) {
 
   useEffect(() => {
     loadFiles();
-  }, [claimId]);
+  }, [claimId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadFiles = async () => {
     try {

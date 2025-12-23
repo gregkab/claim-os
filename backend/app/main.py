@@ -2,7 +2,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
-from app.routers import claims, files, agent
+from app.routers import claims, files, agent, artifacts
 
 app = FastAPI(
     title="Claim Agent API",
@@ -23,6 +23,7 @@ app.add_middleware(
 app.include_router(claims.router, prefix=settings.API_V1_PREFIX)
 app.include_router(files.router, prefix=settings.API_V1_PREFIX)
 app.include_router(agent.router, prefix=settings.API_V1_PREFIX)
+app.include_router(artifacts.router, prefix=settings.API_V1_PREFIX)
 
 
 @app.get("/")

@@ -3,6 +3,7 @@ import axios from 'axios';
 import type {
   Claim,
   File as FileType,
+  Artifact,
   AgentChatRequest,
   AgentChatResponse,
   AgentAcceptRequest,
@@ -42,7 +43,7 @@ export const filesApi = {
     return response.data;
   },
 
-  upload: async (claimId: number, file: File): Promise<FileType> => {
+  upload: async (claimId: number, file: globalThis.File): Promise<FileType> => {
     const formData = new FormData();
     formData.append('file', file);
     const response = await api.post<FileType>(`/claims/${claimId}/files`, formData, {
@@ -58,7 +59,7 @@ export const filesApi = {
   },
 
   getDownloadUrl: (claimId: number, fileId: number): string => {
-    return `${API_BASE_URL}/claims/${claimId}/files/${fileId}/download`;
+    return `${API_BASE_URL}/claims/${claimId}/files/${fileId}`;
   },
 };
 
@@ -72,8 +73,28 @@ export const agentApi = {
     return response.data;
   },
 
+  generateSummary: async (claimId: number): Promise<AgentChatResponse> => {
+    const response = await api.post<AgentChatResponse>(
+      `/claims/${claimId}/agent/generate-summary`
+    );
+    return response.data;
+  },
+
   accept: async (claimId: number, request: AgentAcceptRequest): Promise<any> => {
     const response = await api.post(`/claims/${claimId}/agent/accept`, request);
+    return response.data;
+  },
+};
+
+// Artifacts API
+export const artifactsApi = {
+  list: async (claimId: number): Promise<Artifact[]> => {
+    const response = await api.get<Artifact[]>(`/claims/${claimId}/artifacts`);
+    return response.data;
+  },
+
+  get: async (claimId: number, artifactId: number): Promise<Artifact> => {
+    const response = await api.get<Artifact>(`/claims/${claimId}/artifacts/${artifactId}`);
     return response.data;
   },
 };
