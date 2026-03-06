@@ -98,4 +98,3 @@ export const artifactsApi = {
     return response.data;
   },
 };
-
